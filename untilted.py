@@ -9,7 +9,7 @@ def start():
   bg=(255,255,255)
   intrf=(255,0,255)
   frames=0
-  inputs=["4",1,-1,"0",1,1,"1",0,-1,"2",0,1,"/",1,-1,"EXE",1,1,"+",0,-1,"-",0,1]
+  inputs=["4",1,-3,"0",1,3,"1",0,-3,"2",0,3,"/",1,-3,"EXE",1,3,"+",0,-3,"-",0,3]
   bl=[False,0,False,0,0,False,0,0,False,0,0,False,0,False,0,0,False,0,0,False,0,0]
   fill_rect(0,0,320,222,bg)
   bgc=get_pixel(1,1)
@@ -21,8 +21,8 @@ def start():
   fill_rect(290,0,1,222,intrf)
   draw_bla(14,17,True)
   draw_bla(306,199,False)
-  fill_rect(4,3,7,33,intrf)
-  fill_rect(310,186,7,33,intrf)
+  fill_rect(4,3,7,32,intrf)
+  fill_rect(310,187,7,32,intrf)
   draw_health(True,health[0])
   draw_health(False,health[1])
 def draw_plyr(x,y,c):
@@ -47,21 +47,22 @@ def draw_health(p,n):
     y+=d
 start()
 while True:
+  lag=0.01
   fps=monotonic()
   if not bl[0]:
-    if bl[1]+90 > frames:
-      fill_rect(5,round((frames-bl[1])/3)+4,5,1,(0,255,0))
+    if bl[1]+30 > frames:
+      fill_rect(5,round(frames-bl[1])+4,5,1,(0,255,0))
     else:
       bl[0]=True
   if not bl[11]:
-    if bl[12]+90 > frames:
-      fill_rect(311,round((frames-bl[12])/3)+187,5,1,(0,255,0))
+    if bl[12]+30 > frames:
+      fill_rect(311,round(frames-bl[12])+188,5,1,(0,255,0))
     else:
       bl[11]=True
   if keydown(KEY_SINE) and bl[0]:
     bl[0]=False
     bl[1]=frames
-    fill_rect(4,3,7,33,(0,0,0))
+    fill_rect(4,3,7,32,intrf)
     fill_rect(5,4,5,1,(0,255,0))
     if not bl[2]:
       bl[2]=True
@@ -78,8 +79,8 @@ while True:
   if keydown(KEY_SQUARE) and bl[11]:
     bl[11]=False
     bl[12]=frames
-    fill_rect(310,186,7,33,(0,0,0))
-    fill_rect(311,187,5,1,(0,255,0))
+    fill_rect(310,187,7,32,intrf)
+    fill_rect(311,188,5,1,(0,255,0))
     if not bl[13]:
       bl[13]=True
       bl[14]=plyrb[0]-5
@@ -93,21 +94,24 @@ while True:
       bl[20]=plyrb[0]-5
       bl[21]=plyrb[1]+8
   c=2
-  a=[1,True,13,0,"a"]
+  a=[3,True,13,0,"a"]
   for i in range(2):
     for i in range(3):
       if bl[c]:
-        fill_rect(bl[c+1],bl[c+2],1,5,(255,255,255))
+        lag-=0.0005
+        fill_rect(bl[c+1],bl[c+2],-a[0],5,bg)
         bl[c+1]+=a[0]
         draw_bla(bl[c+1],bl[c+2],a[1])
         col=get_pixel(bl[c+1]+a[2],bl[c+2]+2)
-        if bl[c+1] > 276 or bl[c+1] < 43:
+        if bl[c+1] > 274 or bl[c+1] < 45:
           bl[c]=False
-          fill_rect(bl[c+1]+a[3],bl[c+2],a[2],5,bg)
+          fill_rect(bl[c+1],bl[c+2],-a[0],5,bg)
+          fill_rect(bl[c+1],bl[c+2],a[2],5,bg)
         elif col != bgc and col != intrfc and col != (0,0,0):
           health[a[3]]-=1
           draw_health(a[1],health[a[3]])
           fill_rect(bl[c+1]+a[3],bl[c+2],a[2],5,bg)
+          fill_rect(bl[c+1],bl[c+2],-a[0],5,bg)
           bl[c]=False
           if health[a[3]] == 0:
             fill_rect(0,0,320,222,bg)
@@ -117,7 +121,7 @@ while True:
             start()
       c+=3
     c=13
-    a=[-1,False,-14,1,"b"]
+    a=[-3,False,-14,1,"b"]
   keys=list(get_keys())
   b=0
   for i in range(len(keys)):
@@ -126,12 +130,21 @@ while True:
     co=plyra
     for i in range(2):
       for i in range(4):
-        if str(keys[b]) == inputs[c] and (co[0] > co[3] or inputs[c+2] == 1 or inputs[c+1] == 1) and (co[0] < co[4] or inputs[c+2] == -1 or inputs[c+1] == 1) and (co[1] > 0 or inputs[c+2] == 1 or inputs[c+1] == 0) and (co[1] < 202 or inputs[c+2] == -1 or inputs[c+1] == 0):
-          fill_rect(co[0]-2,co[1]-2,24,2,bg)
-          fill_rect(co[0]-2,co[1]+21,24,2,bg)
-          fill_rect(co[0]-2,co[1]-2,2,24,bg)
-          fill_rect(co[0]+21,co[1]-2,2,24,bg)
+        if str(keys[b]) == inputs[c] and (co[0] >= co[3] or inputs[c+2] == 1 or inputs[c+1] == 1) and (co[0] <= co[4] or inputs[c+2] == -1 or inputs[c+1] == 1) and (co[1] >= 0 or inputs[c+2] == 1 or inputs[c+1] == 0) and (co[1] <= 202 or inputs[c+2] == -1 or inputs[c+1] == 0):
+          lag-=0.001
+          fill_rect(co[0],co[1],22,22,bg)
           co[inputs[c+1]]+=inputs[c+2]
+          if co[1] > 202:
+            co[1]=202
+          if co[1] < 0:
+            co[1]=0
+          print(co[0])
+          print(co[3])
+          print(co[4])
+          if co[0] < co[3]:
+            co[0]=co[3]
+          if co[0] > co[4]:
+            co[0]=co[4]
           draw_plyr(co[0],co[1],co[2])
         c+=3
       if d:
@@ -141,4 +154,5 @@ while True:
     plyrb=co
     b+=1
   frames+=1
-  draw_string(str(1/(monotonic()-fps)),0,0)
+  sleep(lag)
+#  draw_string(str(1/(monotonic()-fps)),0,0)
