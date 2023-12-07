@@ -1,7 +1,7 @@
 from kandinsky import *
 from ion import *
 from time import *
-cursor=[[92,92],[158,43],1,True]
+cursor=[[69,69],[158,43],1,True]
 selected_piece=[False,42,42,"",[]]
 ct=(150,)*3
 turn=True
@@ -96,6 +96,7 @@ king = [
 "*+++++++++*",
 "***********",
 ]
+last_move=[-42,-42,-69,-69,queen,True]
 board=[
 [[rook,False],[knight,False],[bishop,False],[king,False],[queen,False],[bishop,False],[knight,False],[rook,False]],
 [[pawn,False],[pawn,False],[pawn,False],[pawn,False],[pawn,False],[pawn,False],[pawn,False],[pawn,False]],
@@ -161,6 +162,8 @@ def draw_cursor():
     fill_rect(x-2,y-2,27,4,c);fill_rect(x-2,y-2,4,27,c);fill_rect(x+21,y-2,4,27,c);fill_rect(x-2,y+21,27,4,c)
 def deplace_cursor(x,y):
   global cursor, turn
+  fill_rect(0,0,60,20,(255,)*3)
+  draw_string(str(is_menaced([int(x/23),int((y-20)/23)],turn)),0,0)
   if turn:
     a=0
   else:
@@ -197,6 +200,24 @@ def highlight_piece(x,y,c):
   fill_rect(x+2,y+2,3,19,c)
   fill_rect(x+18,y+2,3,19,c)
   fill_rect(x+2,y+18,19,3,c)
+def is_menaced(c,t):
+  global board
+  a=False
+  x,y=c[1],[0]
+  util=[1,0,-1,0,0,-1,0,1,1,1,-1,-1,-1,1,1,-1]
+  i=0
+  for z in range(8):
+    b=1
+    try:
+      while board[x+(util[i*2]*b)][y+(util[(i*2)+1]*b)] == 0:
+        b+=1
+      d=board[x+(util[i*2]*b)][y+(util[(i*2)+1]*b)]
+      if d[1] != t:
+        a=True
+    except:
+      pass
+    i+=1
+  return a
 draw_board()
 draw_cursor()
 while True:
@@ -267,8 +288,11 @@ while True:
             q=1
           if board[selected_piece[1]+int(p/23)][selected_piece[2]] == 0:
             selected_piece[4].append([True,cursor[0][t],cursor[1][t]+p])
-            if board[selected_piece[1]+int((p/23)*2)][selected_piece[2]] == 0 and selected_piece[1] == q:
-              selected_piece[4].append([True,cursor[0][t],cursor[1][t]+(p*2)])
+            try:
+              if board[selected_piece[1]+int((p/23)*2)][selected_piece[2]] == 0 and selected_piece[1] == q:
+                  selected_piece[4].append([True,cursor[0][t],cursor[1][t]+(p*2)])
+            except:
+              pass
           try:
             if board[selected_piece[1]+int(p/23)][selected_piece[2]-1] != 0 and board[selected_piece[1]+int(p/23)][selected_piece[2]-1][1] != turn:
               selected_piece[4].append([False,cursor[0][t]-23,cursor[1][t]+p])
@@ -350,11 +374,39 @@ while True:
         dp=0
         for i in range(len(selected_piece[4])):
           if cursor[1][t] == selected_piece[4][a][2] and cursor[0][t] == selected_piece[4][a][1]:
-            board[int((cursor[1][t]-20)/23)][int(cursor[0][t]/23)]=board[selected_piece[1]][selected_piece[2]]
+            if selected_piece[3] == pawn and (int((selected_piece[4][a][2]-20)/23) == 0 or int((selected_piece[4][a][2]-20)/23) == 7):
+              draw_string("1: 2: :3 4:",190,184)
+              draw_piece(queen,turn,208,185)
+              draw_piece(knight,turn,240,185)
+              draw_piece(rook,turn,270,185)
+              draw_piece(bishop,turn,300,185)
+              a=True
+              while a:
+                if keydown(KEY_ONE) or keydown(KEY_TWO) or keydown(KEY_THREE) or keydown(KEY_FOUR):
+                  a=False
+                if keydown(KEY_ONE):
+                  board[int((cursor[1][t]-20)/23)][int(cursor[0][t]/23)]=[queen,turn]
+                  selected_piece[3]=queen
+                elif keydown(KEY_TWO):
+                  board[int((cursor[1][t]-20)/23)][int(cursor[0][t]/23)]=[knight,turn]
+                  selected_piece[3]=knight
+                elif keydown(KEY_THREE):
+                  board[int((cursor[1][t]-20)/23)][int(cursor[0][t]/23)]=[rook,turn]
+                  selected_piece[3]=rook
+                elif keydown(KEY_FOUR):
+                  board[int((cursor[1][t]-20)/23)][int(cursor[0][t]/23)]=[bishop,turn]
+                  selected_piece[3]=bishop
+              fill_rect(190,184,200,20,(255,)*3)
+            else:
+              board[int((cursor[1][t]-20)/23)][int(cursor[0][t]/23)]=board[selected_piece[1]][selected_piece[2]]
             board[selected_piece[1]][selected_piece[2]]=0
-            fill_rect(selected_piece[4][a][1]+2,selected_piece[4][a][2]+2,19,19,get_col(int(selected_piece[4][a][1]/23),int((selected_piece[4][a][2]-20)/23))[0])
-            fill_rect((selected_piece[2]*23)+2,(selected_piece[1]*23)+22,19,19,get_col(selected_piece[2],selected_piece[1])[0])
-            dp=[selected_piece[3],selected_piece[4][a][1]+6,selected_piece[4][a][2]+5]
+            fill_rect(last_move[0],last_move[1],19,19,get_col(int((last_move[1]-20)/23),int((last_move[0])/23))[0])
+            fill_rect(last_move[2],last_move[3],19,19,get_col(int((last_move[3]-20)/23),int(last_move[2]/23))[0])
+            draw_piece(last_move[4],last_move[5],last_move[2]+4,last_move[3]+3)
+            fill_rect(cursor[0][t]+2,cursor[1][t]+2,19,19,(245,245,50))
+            fill_rect((selected_piece[2]*23)+2,(selected_piece[1]*23)+22,19,19,(210,210,50))
+            dp=[selected_piece[3],cursor[0][t]+6,cursor[1][t]+5]
+            last_move=[(selected_piece[2]*23)+2,(selected_piece[1]*23)+22,cursor[0][t]+2,cursor[1][t]+2,selected_piece[3],turn]
           a+=1
         a=0
         if dp != 0:
