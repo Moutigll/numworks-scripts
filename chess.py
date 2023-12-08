@@ -1,6 +1,11 @@
 from kandinsky import *
 from ion import *
 from time import *
+try:
+  from os import *
+except:
+  def fille_circle(x,y,r,c):
+    fill_rect(x-r,y-r,r*2,r*2,c)
 cursor=[[69,69],[158,43],1,True]
 selected_piece=[False,42,42,"",[]]
 ct=(150,)*3
@@ -162,8 +167,6 @@ def draw_cursor():
     fill_rect(x-2,y-2,27,4,c);fill_rect(x-2,y-2,4,27,c);fill_rect(x+21,y-2,4,27,c);fill_rect(x-2,y+21,27,4,c)
 def deplace_cursor(x,y):
   global cursor, turn
-  fill_rect(0,0,60,20,(255,)*3)
-  draw_string(str(is_menaced([int(x/23),int((y-20)/23)],turn)),0,0)
   if turn:
     a=0
   else:
@@ -203,20 +206,32 @@ def highlight_piece(x,y,c):
 def is_menaced(c,t):
   global board
   a=False
-  x,y=c[1],[0]
-  util=[1,0,-1,0,0,-1,0,1,1,1,-1,-1,-1,1,1,-1]
-  i=0
-  for z in range(8):
-    b=1
+  util=[[True,-1,1],[True,-1,-1],[False,1,1],[False,1,-1]]
+  for i in range(4):
     try:
-      while board[x+(util[i*2]*b)][y+(util[(i*2)+1]*b)] == 0:
-        b+=1
-      d=board[x+(util[i*2]*b)][y+(util[(i*2)+1]*b)]
-      if d[1] != t:
+      if t == util[i][0] and (board[c[1]+util[i][1]][c[0]+util[i][2]][0] == pawn and board[c[1]+util[i][1]][c[0]+util[i][2]][1] != t):
         a=True
     except:
       pass
-    i+=1
+  util=[[-2,-1],[-2,1],[-1,-2],[-1,2],[1,-2],[1,2],[2,-1],[2,1]]
+  for i in range(8):
+    try:
+      bd=board[c[1]+util[i][0]][c[0]+util[i][1]]
+      if bd[0] == knight and bd[1] != t:
+        a=True
+    except:
+      pass
+  util=[1,0,-1,0,0,-1,0,1,1,1,-1,-1,-1,1,1,-1]
+  for i in range(8):
+    b=1
+    try:
+      while board[c[1]+(b*util[i*2])][c[0]+(b*util[(i*2)+1])] == 0:
+        b+=1
+      u=board[c[1]+(b*util[i*2])][c[0]+(b*util[(i*2)+1])]
+      if u[1] != t and (u[0] == queen or (i < 4 and u[0] == rook) or (i > 3 and u[0] == bishop) or (b == 1 and u[0] == king)):
+        a=True
+    except:
+      pass
   return a
 draw_board()
 draw_cursor()
@@ -341,9 +356,8 @@ while True:
                 pass
               try:
                 if board[selected_piece[1]+(util[a][0]*h)][selected_piece[2]+(util[a][1]*h)][1] != turn:
-                  if selected_piece[3] == king:
-                    if h < 2:
-                      selected_piece[4].append([False,cursor[0][t]+((util[a][1]*h)*23),cursor[1][t]+((util[a][0]*h)*23)])
+                  if selected_piece[3] == king and h < 2:
+                    selected_piece[4].append([False,cursor[0][t]+((util[a][1]*h)*23),cursor[1][t]+((util[a][0]*h)*23)])
                   else:
                     selected_piece[4].append([False,cursor[0][t]+((util[a][1]*h)*23),cursor[1][t]+((util[a][0]*h)*23)])
               except:
