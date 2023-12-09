@@ -4,12 +4,13 @@ from time import *
 try:
   from os import *
 except:
-  def fille_circle(x,y,r,c):
+  def fill_circle(x,y,r,c):
     fill_rect(x-r,y-r,r*2,r*2,c)
-cursor=[[69,69],[158,43],1,True]
+cursor=[[92,92],[158,43],1,True]
 selected_piece=[False,42,42,"",[]]
 ct=(150,)*3
 turn=True
+rq=False
 dl=0.2
 knight = [
 "....**.....",
@@ -103,17 +104,17 @@ king = [
 ]
 last_move=[-42,-42,-69,-69,queen,True]
 board=[
-[[rook,False],[knight,False],[bishop,False],[king,False],[queen,False],[bishop,False],[knight,False],[rook,False]],
-[[pawn,False],[pawn,False],[pawn,False],[pawn,False],[pawn,False],[pawn,False],[pawn,False],[pawn,False]],
-[0,0,0,0,0,0,0,0],
+[[rook,False,False],[knight,False],[bishop,False],0,[king,False,False],0,0,[rook,False,False]],
+[[pawn,False],[pawn,False],[pawn,False],[pawn,False],[pawn,False],0,[pawn,False],[pawn,False]],
+[0,0,0,0,0,[queen,True],0,0],
 [0,0,0,0,0,0,0,0],
 [0,0,0,0,0,0,0,0],
 [0,0,0,0,0,0,0,0],
 [[pawn,True],[pawn,True],[pawn,True],[pawn,True],[pawn,True],[pawn,True],[pawn,True],[pawn,True]],
-[[rook,True],[knight,True],[bishop,True],[king,True],[queen,True],[bishop,True],[knight,True],[rook,True]],
+[[rook,True,False],0,0,0,[king,True,False],0,0,[rook,True,False]],
 ]
 def draw_board():
-  c="brown"
+  c=(255,233,197)
   x=0
   y=20
   a=0
@@ -138,13 +139,13 @@ def draw_board():
     y+=23
 def get_col(l,c):
   if l%2 == 0 and c%2 == 0:
-    c=["brown",(255,233,197)]
+    c=[(255,233,197),"brown"]
   elif l%2 == 0 and c%2 == 1:
-    c=[(255,233,197),"brown"]
-  elif l%2 == 1 and c%2 == 1:
     c=["brown",(255,233,197)]
-  elif l%2 == 1 and c%2 == 0:
+  elif l%2 == 1 and c%2 == 1:
     c=[(255,233,197),"brown"]
+  elif l%2 == 1 and c%2 == 0:
+    c=["brown",(255,233,197)]
   return c
 def draw_cursor():
   global cursor, turn
@@ -176,6 +177,8 @@ def deplace_cursor(x,y):
   cursor[0][a]+=x
   cursor[1][a]+=y
   cursor[2]=1
+  fill_rect(0,0,100,20,(255,)*3)
+  draw_string(str(is_menaced([int(cursor[0][a]/23),int((cursor[1][a]-20)/23)],turn)),0,0)
   draw_cursor()
   sleep(dl)
 def draw_piece(p,c,x,y):
@@ -227,9 +230,10 @@ def is_menaced(c,t):
     try:
       while board[c[1]+(b*util[i*2])][c[0]+(b*util[(i*2)+1])] == 0:
         b+=1
-      u=board[c[1]+(b*util[i*2])][c[0]+(b*util[(i*2)+1])]
-      if u[1] != t and (u[0] == queen or (i < 4 and u[0] == rook) or (i > 3 and u[0] == bishop) or (b == 1 and u[0] == king)):
-        a=True
+      if c[1]+(b*util[i*2]) < 8 and c[1]+(b*util[i*2]) > -1 and c[0]+(b*util[(i*2)+1]) > -1 and c[0]+(b*util[(i*2)+1]) < 8:
+        u=board[c[1]+(b*util[i*2])][c[0]+(b*util[(i*2)+1])]
+        if u[1] != t and (u[0] == queen or (i < 4 and u[0] == rook) or (i > 3 and u[0] == bishop) or (b == 1 and u[0] == king)):
+          a=True
     except:
       pass
   return a
@@ -338,6 +342,20 @@ while True:
           elif selected_piece[3] == king:
             util=[[1,0,8,8],[-1,0,0,0],[0,1,8,8],[0,-1,0,0]]
             r=2
+            if board[selected_piece[1]][selected_piece[2]][2] == False:
+              if not is_menaced([selected_piece[2],selected_piece[1]],turn):
+                try:
+                  if not is_menaced([5,selected_piece[1]],turn) and not is_menaced([6,selected_piece[1]],turn) and not is_menaced([7,selected_piece[1]],turn) and board[selected_piece[1]][7][2] == False and board[selected_piece[1]][6] == 0 and board[selected_piece[1]][5] == 0:
+                    selected_piece[4].append([True,138,(selected_piece[1]*23)+20])
+                    rq=True
+                except:
+                  pass
+                try:
+                  if not is_menaced([3,selected_piece[1]],turn) and not is_menaced([2,selected_piece[1]],turn) and not is_menaced([1,selected_piece[1]],turn) and not is_menaced([0,selected_piece[1]],turn) and not board[selected_piece[1]][0][2] and board[selected_piece[1]][1] == 0 and board[selected_piece[1]][2] == 0 and board[selected_piece[1]][3] == 0:
+                    selected_piece[4].append([True,46,(selected_piece[1]*23)+20])
+                    rq=True
+                except:
+                  pass
           else:
             r=1
             util=[[1,1,8,8],[-1,1,0,8],[-1,-1,0,0],[1,-1,8,0]]
@@ -413,17 +431,30 @@ while True:
               fill_rect(190,184,200,20,(255,)*3)
             else:
               board[int((cursor[1][t]-20)/23)][int(cursor[0][t]/23)]=board[selected_piece[1]][selected_piece[2]]
+            if rq:
+              if cursor[0][t] == 138:
+                board[selected_piece[1]][5]=[rook,turn]
+                board[selected_piece[1]][7]=0
+                fill_rect(161,(selected_piece[1]*23)+20,23,23,get_col(161,selected_piece[1])[0])
+              elif cursor[0][t] == 46:
+                board[selected_piece[1]][3]=[rook,turn]
+                board[selected_piece[1]][0]=0
+                fill_rect(0,(selected_piece[1]*23)+20,23,23,get_col(0,selected_piece[1])[0])
+              else:
+                rq=False
             board[selected_piece[1]][selected_piece[2]]=0
             fill_rect(last_move[0],last_move[1],19,19,get_col(int((last_move[1]-20)/23),int((last_move[0])/23))[0])
             fill_rect(last_move[2],last_move[3],19,19,get_col(int((last_move[3]-20)/23),int(last_move[2]/23))[0])
             draw_piece(last_move[4],last_move[5],last_move[2]+4,last_move[3]+3)
             fill_rect(cursor[0][t]+2,cursor[1][t]+2,19,19,(245,245,50))
             fill_rect((selected_piece[2]*23)+2,(selected_piece[1]*23)+22,19,19,(210,210,50))
-            dp=[selected_piece[3],cursor[0][t]+6,cursor[1][t]+5]
+            dpc=[selected_piece[3],cursor[0][t]+6,cursor[1][t]+5]
             last_move=[(selected_piece[2]*23)+2,(selected_piece[1]*23)+22,cursor[0][t]+2,cursor[1][t]+2,selected_piece[3],turn]
+            if selected_piece[3] == king or selected_piece[3] == rook:
+              board[int((cursor[1][t]-20)/23)][int(cursor[0][t]/23)][2]=True
           a+=1
         a=0
-        if dp != 0:
+        if dpc != 0:
           for i in range(len(selected_piece[4])):
             c=get_col(int(selected_piece[4][a][1]/23),int((selected_piece[4][a][2]-20)/23))[0]
             if selected_piece[4][a][0]:
@@ -431,7 +462,13 @@ while True:
             else:
               highlight_piece(selected_piece[4][a][1],selected_piece[4][a][2],c)
             a+=1
-          draw_piece(dp[0],turn,dp[1],dp[2])
+          if rq:
+            if cursor[0][t] > 100:
+              draw_piece(rook,turn,121,(selected_piece[1]*23)+25)
+            else:
+              draw_piece(rook,turn,76,(selected_piece[1]*23)+25)
+            rq=False
+          draw_piece(dpc[0],turn,dpc[1],dpc[2])
           cursor[2]=0
           draw_cursor()
           cursor[2]=42
