@@ -1,11 +1,7 @@
 from kandinsky import *
 from ion import *
-from time import *
-try:
-  from os import *
-except:
-  def fill_circle(x,y,r,c):
-    fill_rect(x-r,y-r,r*2,r*2,c)
+def fill_circle(x,y,r,c):
+  fill_rect(x-r,y-r,r*2,r*2,c)
 cursor=[[92,92],[158,43],1,True]
 selected_piece=[False,42,42,"",[]]
 ct=(150,)*3
@@ -300,15 +296,13 @@ while True:
         selected_piece[1],selected_piece[2]=int(((cursor[1][t]-20)/23)),int((cursor[0][t]/23))
         selected_piece[3]=board[selected_piece[1]][selected_piece[2]][0]
         a=b=0
-        km=False
         for i in range(8):
           for i in range(8):
-            if board[a][b] != 0 and board[a][b][0] == king:
-                if is_menaced([b,a],turn):
-                  km=True
-            b+=1
-          b=0
-          a+=1
+            if board[b][a] != 0 and board[b][a][0] == king and board[b][a][1] == turn:
+              kx,ky=a,b
+            a+=1
+          a=0
+          b+=1
         if selected_piece[3] == pawn:
           if turn == True:
             p=-23
@@ -317,20 +311,45 @@ while True:
             p=23
             q=1
           if board[selected_piece[1]+int(p/23)][selected_piece[2]] == 0:
-            selected_piece[4].append([True,cursor[0][t],cursor[1][t]+p])
+            br=board[selected_piece[1]+int(p/23)][selected_piece[2]]
+            board[selected_piece[1]+int(p/23)][selected_piece[2]]=board[selected_piece[1]][selected_piece[2]]
+            board[selected_piece[1]][selected_piece[2]]=0
+            if not is_menaced([kx,ky],turn):
+              selected_piece[4].append([True,cursor[0][t],cursor[1][t]+p])
+            board[selected_piece[1]+int(p/23)][selected_piece[2]]=br
+            board[selected_piece[1]][selected_piece[2]]=[selected_piece[3],turn]
             try:
               if board[selected_piece[1]+int((p/23)*2)][selected_piece[2]] == 0 and selected_piece[1] == q:
+                br=board[selected_piece[1]+int((p/23)*2)][selected_piece[2]]
+                board[selected_piece[1]+int((p/23)*2)][selected_piece[2]]=board[selected_piece[1]][selected_piece[2]]
+                board[selected_piece[1]][selected_piece[2]]=0
+                if not is_menaced([kx,ky],turn):
                   selected_piece[4].append([True,cursor[0][t],cursor[1][t]+(p*2)])
+                board[selected_piece[1]+int((p/23)*2)][selected_piece[2]]=br
+                board[selected_piece[1]][selected_piece[2]]=[selected_piece[3],turn]
             except:
               pass
           try:
             if board[selected_piece[1]+int(p/23)][selected_piece[2]-1] != 0 and board[selected_piece[1]+int(p/23)][selected_piece[2]-1][1] != turn:
-              selected_piece[4].append([False,cursor[0][t]-23,cursor[1][t]+p])
+              br=board[selected_piece[1]+int(p/23)][selected_piece[2]-1]
+              board[selected_piece[1]+int(p/23)][selected_piece[2]-1]=board[selected_piece[1]][selected_piece[2]]
+              board[selected_piece[1]][selected_piece[2]]=0
+              if not is_menaced([kx,ky],turn):
+                selected_piece[4].append([False,cursor[0][t]-23,cursor[1][t]+p])
+              board[selected_piece[1]+int(p/23)][selected_piece[2]-1]=br
+              board[selected_piece[1]][selected_piece[2]]=[selected_piece[3],turn]
           except:
             pass
           try:
             if board[selected_piece[1]+int(p/23)][selected_piece[2]+1] != 0 and board[selected_piece[1]+int(p/23)][selected_piece[2]+1][1] != turn:
-              selected_piece[4].append([False,cursor[0][t]+23,cursor[1][t]+p])
+              br=board[selected_piece[1]+int(p/23)][selected_piece[2]+1]
+              board[selected_piece[1]+int(p/23)][selected_piece[2]+1]=board[selected_piece[1]][selected_piece[2]]
+              board[selected_piece[1]][selected_piece[2]]=0
+              if not is_menaced([kx,ky],turn):
+                selected_piece[4].append([False,cursor[0][t]+23,cursor[1][t]+p])
+              board[selected_piece[1]+int(p/23)][selected_piece[2]+1]=br
+              board[selected_piece[1]][selected_piece[2]]=[selected_piece[3],turn]
+              
           except:
             pass
         elif selected_piece[3] == knight:
@@ -338,12 +357,21 @@ while True:
           for i in range(8):
             try:
               if board[selected_piece[1]+util[i][0]][selected_piece[2]+util[i][1]] == 0:
-                selected_piece[4].append([True,cursor[0][t]+(util[i][1]*23),cursor[1][t]+(util[i][0]*23)])
+                br=board[selected_piece[1]+util[i][0]][selected_piece[2]+util[i][1]]
+                board[selected_piece[1]+util[i][0]][selected_piece[2]+util[i][1]]=board[selected_piece[1]][selected_piece[2]]
+                board[selected_piece[1]][selected_piece[2]]=0
+                if not is_menaced([kx,ky],turn):
+                  selected_piece[4].append([True,cursor[0][t]+(util[i][1]*23),cursor[1][t]+(util[i][0]*23)])
+                board[selected_piece[1]+util[i][0]][selected_piece[2]+util[i][1]]=br
+                board[selected_piece[1]][selected_piece[2]]=[selected_piece[3],turn]
               elif board[selected_piece[1]+util[i][0]][selected_piece[2]+util[i][1]][1] != turn:
-                if not km:
+                br=board[selected_piece[1]+util[i][0]][selected_piece[2]+util[i][1]]
+                board[selected_piece[1]+util[i][0]][selected_piece[2]+util[i][1]]=board[selected_piece[1]][selected_piece[2]]
+                board[selected_piece[1]][selected_piece[2]]=0
+                if not is_menaced([kx,ky],turn):
                   selected_piece[4].append([False,cursor[0][t]+(util[i][1]*23),cursor[1][t]+(util[i][0]*23)])
-                else:
-                  pass
+                board[selected_piece[1]+util[i][0]][selected_piece[2]+util[i][1]]=br
+                board[selected_piece[1]][selected_piece[2]]=[selected_piece[3],turn]
             except:
               pass
         elif selected_piece[3] == rook or selected_piece[3] == bishop or selected_piece[3] == queen or selected_piece[3] == king:
@@ -386,16 +414,29 @@ while True:
                       selected_piece[4].append([True,cursor[0][t]+((util[a][1]*h)*23),cursor[1][t]+((util[a][0]*h)*23)])
                     k=False
                   else:
-                    selected_piece[4].append([True,cursor[0][t]+((util[a][1]*h)*23),cursor[1][t]+((util[a][0]*h)*23)])
-                  h+=1
+                    br=board[selected_piece[1]+(util[a][0]*h)][selected_piece[2]+(util[a][1]*h)]
+                    board[selected_piece[1]+(util[a][0]*h)][selected_piece[2]+(util[a][1]*h)]=board[selected_piece[1]][selected_piece[2]]
+                    board[selected_piece[1]][selected_piece[2]]=0
+                    if not is_menaced([kx,ky],turn):
+                      selected_piece[4].append([True,cursor[0][t]+((util[a][1]*h)*23),cursor[1][t]+((util[a][0]*h)*23)])
+                    board[selected_piece[1]+(util[a][0]*h)][selected_piece[2]+(util[a][1]*h)]=br
+                    board[selected_piece[1]][selected_piece[2]]=[selected_piece[3],turn]
+                    h+=1
               except:
                 pass
               try:
                 if board[selected_piece[1]+(util[a][0]*h)][selected_piece[2]+(util[a][1]*h)][1] != turn:
-                  if selected_piece[3] == king and h < 2:
-                    selected_piece[4].append([False,cursor[0][t]+((util[a][1]*h)*23),cursor[1][t]+((util[a][0]*h)*23)])
+                  if selected_piece[3] == king:
+                    if not is_menaced([selected_piece[2]+util[a][1],selected_piece[1]+util[a][0]],turn) and h == 1:
+                      selected_piece[4].append([False,cursor[0][t]+((util[a][1]*h)*23),cursor[1][t]+((util[a][0]*h)*23)])
                   else:
-                    selected_piece[4].append([False,cursor[0][t]+((util[a][1]*h)*23),cursor[1][t]+((util[a][0]*h)*23)])
+                    br=board[selected_piece[1]+(util[a][0]*h)][selected_piece[2]+(util[a][1]*h)]
+                    board[selected_piece[1]+(util[a][0]*h)][selected_piece[2]+(util[a][1]*h)]=board[selected_piece[1]][selected_piece[2]]
+                    board[selected_piece[1]][selected_piece[2]]=0
+                    if not is_menaced([kx,ky],turn):
+                      selected_piece[4].append([False,cursor[0][t]+((util[a][1]*h)*23),cursor[1][t]+((util[a][0]*h)*23)])
+                    board[selected_piece[1]+(util[a][0]*h)][selected_piece[2]+(util[a][1]*h)]=br
+                    board[selected_piece[1]][selected_piece[2]]=[selected_piece[3],turn]
               except:
                 pass
               a+=1
