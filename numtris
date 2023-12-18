@@ -1,0 +1,41 @@
+from kandinsky import *
+from random import *
+from ion import *
+from time import *
+queue=[]
+pieces=[
+[[[0,0,0,0],[1,1,1,1],[0,0,0,0],[0,0,0,0]],[[0,1,0,0],[0,1,0,0],[0,1,0,0],[0,1,0,0]],[[0,0,0,0],[0,0,0,0],[1,1,1,1],[0,0,0,0]],[[0,0,1,0],[0,0,1,0],[0,0,1,0],[0,0,1,0]]],
+0,0,0,0,0,
+[[[0,1,1,0],[0,1,1,0],[0,0,0,0],[0,0,0,0]],[[0,1,1,0],[0,1,1,0],[0,0,0,0],[0,0,0,0]],[[0,1,1,0],[0,1,1,0],[0,0,0,0],[0,0,0,0]],[[0,1,1,0],[0,1,1,0],[0,0,0,0],[0,0,0,0]]]
+]
+fill_rect(0,0,320,223,(150,)*3)
+fill_rect(77,0,95,223,(100,)*3)
+fill_rect(80,0,89,219,(150,)*3)
+for i in range(10):
+  for n in range(20):
+    fill_rect((i*9)+80,(n*9)+40,8,8,(30,)*3)
+def draw_tetromino(t,o):
+  c=["cyan","purple","blue","orange","red","green","yellow"]
+  x,y=5,5
+  try:
+    for a in range(len(pieces[t][o])):
+      for i in range(len(pieces[t][o][a])):
+        if pieces[t][o][a][i] == 1:
+          fill_rect(x+(10*i),y+(10*a),8,8,c[t])
+  except:pass
+def new_bag():
+  global queue
+  bag=[0,1,2,3,4,5,6]
+  for i in range(7):
+    a=randint(0,len(bag)-1)
+    queue.append(bag[a])
+    bag.remove(bag[a])
+new_bag()
+new_bag()
+while True:
+  if keydown(KEY_OK):
+    draw_tetromino(queue[0],0)
+    queue.remove(queue[0])
+    if len(queue) == 7:
+      new_bag()
+    sleep(0.2)

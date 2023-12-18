@@ -1,5 +1,6 @@
 from kandinsky import *
 from ion import *
+from time import *
 def fill_circle(x,y,r,c):
   fill_rect(x-r,y-r,r*2,r*2,c)
 cursor=[[92,92],[158,43],1,True]
