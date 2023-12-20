@@ -6,7 +6,7 @@ dl=0.1
 lm=[0,0,0,0]
 queue=[]
 frames=0
-drp=[3000,0]
+drp=[50,0]
 piece=[0,4,0,0]
 pieces=[
 [[[0,0,0,0],[1,1,1,1],[0,0,0,0],[0,0,0,0]],[[0,1,0,0],[0,1,0,0],[0,1,0,0],[0,1,0,0]],[[0,0,0,0],[0,0,0,0],[1,1,1,1],[0,0,0,0]],[[0,0,1,0],[0,0,1,0],[0,0,1,0],[0,0,1,0]]],
@@ -71,7 +71,7 @@ def deplace_piece(p,o,x,y,e):
   s=len(pieces[p][o])
   for i in range(s):
     for j in range(s):
-      if pieces[p][o][i][j] == 1 and y+i < 24 and old[y+i][x+j] == 9:
+      if pieces[p][o][i][j] == 1 and y+i < 24 and old[y+i][x+j] == 9 and ok:
         old[y+i][x+j]=p
       elif y+i > 23:
         ok=False
@@ -101,6 +101,7 @@ def new_tetromino():
   piece[0],piece[1],piece[2],piece[3]=3,4,0,queue[0]
   draw_tetromino(queue[0],piece[0],piece[1],piece[2],True)
   deplace_piece(piece[3],piece[2],piece[0],piece[1],False)
+  lm=[3,4,queue[0],0]
   drp[1]=0
   sleep(0.1)
   queue.remove(queue[0])
@@ -116,7 +117,7 @@ while True:
     piece[2]+=1
     if piece[2] == 4:
       piece[2]=0
-      deplace_piece(piece[3],piece[2],piece[0],piece[1])
+      deplace_piece(piece[3],piece[2],piece[0],piece[1],True)
     draw_tetromino(piece[3],piece[0],piece[1],piece[2],True)
     sleep(dl)
   if keydown(KEY_NINE):
@@ -124,7 +125,7 @@ while True:
     piece[2]-=1
     if piece[2] == -1:
       piece[2]=3
-    deplace_piece(piece[3],piece[2],piece[0],piece[1])
+    deplace_piece(piece[3],piece[2],piece[0],piece[1],True)
     draw_tetromino(piece[3],piece[0],piece[1],piece[2],True)
     sleep(dl)
   if keydown(KEY_EIGHT):
@@ -133,7 +134,7 @@ while True:
       piece[2]-=2
     else:
       piece[2]+=2 
-    deplace_piece(piece[3],piece[2],piece[0],piece[1])
+    deplace_piece(piece[3],piece[2],piece[0],piece[1],True)
     draw_tetromino(queue[0],piece[0],piece[1],piece[2],True)
     sleep(dl)
   if drp[1] > drp[0]:
@@ -148,3 +149,4 @@ while True:
   else:
     drp[1]+=1
   frames+=1
+  draw_board()
