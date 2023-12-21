@@ -38,6 +38,7 @@ else:
         for j in range(3):
             key.append([int(inp[a]),j,i])
             a+=1
+    print(key)
     a=True
     while a:
         try:
