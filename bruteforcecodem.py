@@ -5,6 +5,7 @@ letters=[[[0,1,0],[1,0,1],[1,0,1]],[[1,1,0],[1,1,0],[1,1,0]],[[0,1,0],[1,0,0],[0
 alphabet=["a","b","c","d","e","f","g","h","i","j","k","l","m","n","o","p","q","r","s","t","u","v","w","x","y","z"," "]
 sentence=list(input("Rentrez la phrase à analyser:\n"))
 a=ls=0
+msg=[]
 for i in range(len(sentence)):
     sentence[i]=int(sentence[i])
 while a < len(sentence):
@@ -20,9 +21,10 @@ def permute(LIST):
         for n in range(0,length):
              for end in permute( LIST[:n] + LIST[n+1:] ):
                  yield [ LIST[n] ] + end
-q=r=s=t=0
+q=r=t=0
+s=-1
 decrypted=""
-start=monotonic()
+start=estart=monotonic()
 total=end=start
 for key in permute(["1","2","3","4","5","6","7","8","9",]):
     r=q/3628.8
@@ -30,8 +32,11 @@ for key in permute(["1","2","3","4","5","6","7","8","9",]):
         pr="█"*int(round(r,0))
         prr="-"*int(100-round(r,0))
         s=round(r,0)
-        os.system('CLS')  
-        print("Progress: [" + pr + prr + "] " + str(round(r,0)) + "% Complete\nIl y'a " + str(ls) + " caractères dans la phrase cryptée.")
+        etime=round(monotonic()-estart)*int(100-round(r,0))
+        estart=monotonic()
+        os.system('CLS')
+        print("Progress: [" + pr + prr + "] " + str(round(r,0)) + "% Complete, Estimated remaining time: " + str(etime) + "s\nIl y'a " + str(ls) + " caractères dans la phrase cryptée.")
+        print(msg)
     isentence=copy.copy(sentence)
     b=key
     tkey=[]
@@ -71,9 +76,14 @@ for key in permute(["1","2","3","4","5","6","7","8","9",]):
                                 b=False
                 if b:
                     out+=str(alphabet[i])
-                    if len(list(out)) == ls:
+                    if len(list(out)) > ls-int(round(ls/10)):
                         decrypted+="Key: " + str(key) + "\nMessage: " + str(out) + "\n\n"
                         t+=1
+                        try:
+                            test=msg.index(out)
+                        except:
+                            msg.append(key)
+                            msg.append(out)
         except:
             a=False
     sentence=isentence
