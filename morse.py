@@ -464,4 +464,4 @@ while True:
 #    --------------------   #
 #         By Moutig         #
 #                           #
-#############################
+############################# yeah i know i defeinitely should use list but i didn't know at the time
