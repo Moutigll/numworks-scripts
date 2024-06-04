@@ -25,6 +25,31 @@ pieces=[
 [[[0,1,1,0],[0,1,1,0],[0,0,0,0],[0,0,0,0]],[[0,1,1,0],[0,1,1,0],[0,0,0,0],[0,0,0,0]],[[0,1,1,0],[0,1,1,0],[0,0,0,0],[0,0,0,0]],[[0,1,1,0],[0,1,1,0],[0,0,0,0],[0,0,0,0]]]
 ] #gestion of collision boxes for tetromino in a 4/3x4/3 box
 
+#List of wallkick
+#J, L, T, S, Z Tetromino Wall Kick Data
+#       Test 1	           Test 2	  Test 3	Test 4	Test 5
+"""0>>1	basic rotation"""	#(-1, 0)	(-1, 1)	(-1,-2)
+"""1>>0	basic rotation""" #( 1, 0)	( 1,-1)	( 0, 2)	( 1, 2)
+"""1>>2	basic rotation"""	#( 1, 0)	( 1,-1)	( 0, 2)	( 1, 2)
+"""2>>1	basic rotation"""	#(-1, 0)	( 0,-2)	(-1,-2)
+"""2>>3	basic rotation"""	#( 1, 0)	( 0,-2)	( 1,-2)
+"""3>>2	basic rotation"""	#(-1, 0)	(-1,-1)	( 0, 2)	(-1, 2)
+"""3>>0	basic rotation"""	#(-1, 0)	(-1,-1)	( 0, 2)	(-1, 2)
+"""0>>3	basic rotation"""	#( 1, 0)	( 1, 1)	( 1,-2)
+#I Tetromino Wall Kick Data
+#       Test 1	           Test 2	  Test 3	Test 4	Test 5
+"""0>>1	basic rotation"""	#(-2, 0)	( 1, 0)	(-2,-1)	( 1, 2)
+"""1>>0	basic rotation"""	#( 2, 0)	(-1, 0)	( 2, 1)	(-1,-2)
+"""1>>2	basic rotation"""	#(-1, 0)	( 2, 0)	(-1, 2)	( 2,-1)
+"""2>>1	basic rotation"""	#( 1, 0)	(-2, 0)	( 1,-2)	(-2, 1)
+"""2>>3	basic rotation"""	#( 2, 0)	(-1, 0)	( 2, 1)	(-1,-2)
+"""3>>2	basic rotation"""	#(-2, 0)	( 1, 0)	(-2,-1)	( 1, 2)
+"""3>>0	basic rotation"""	#( 1, 0)	(-2, 0)	( 1,-2)	(-2, 1)
+"""0>>3	basic rotation"""	#(-1, 0)	( 2, 0)	(-1, 2)	( 2,-1)
+
+
+
+
 board=[
 [9,9,9,9,9,9,9,9,9,9],
 [9,9,9,9,9,9,9,9,9,9],
