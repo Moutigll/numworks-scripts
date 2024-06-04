@@ -18,7 +18,7 @@ arr=[10,0]#amount of frames between each repetitions left or right
 td=[40,0]#amount of frames after rotation or hardrop
 das=[2,0]#frames between each block down when press down
 queue_size=5#how many tetromino are shown in advance (may impact performances)
-queue_minimal=2#toggle this to reduce queue impact 0=nothing, 1=colors, 2=letters
+queue_minimal=0#toggle this to reduce queue impact 0=nothing, 1=letters
 shadows=False
 dl=0.1
 lm=[0,0,0,0]
@@ -43,13 +43,13 @@ table0=[
 #J, L, T, S, Z Tetromino Wall Kick Data
 #Test0 Test1  Test2  Test3  Test4
 [0,0,  -1,0,  -1,-1, 0,2,   -1,2,],#0>>1
-[0,0,  1,0,   0,1,   -1,-3, 1,0  ],#1>>0
+[0,0,  1,0,   1,1,   0,-2,  1,-2 ],#1>>0
 [0,0,  1,0,   1,1,   0,-2,  1,-2 ],#1>>2
-[0,0,  -1,0,  0,-1,  1,3,   -1,0 ],#2>>1
+[0,0,  -1,0,  -1,-1,  0,1,   -1,2 ],#2>>1
 [0,0,  1,0,   1,-1,  0,2,   1,2  ],#2>>3
-[0,0,  -1,0,  0,1,   1,-3,  -1,0 ],#3>>2
+[0,0,  -1,0,  -1,1,   0,-2,  -1,-2 ],#3>>2
 [0,0,  -1,0,  -1,1,  0,-2,  -1,-2],#3>>0
-[0,0,  1,0,   0,-1,  -1,3,  1,0  ],#0>>3
+[0,0,  1,0,   1,-1,  0,2,  1,2  ],#0>>3
 #I Tetromino Wall Kick Data
 #Test0 Test1  Test2  Test3  Test4
 [0,0,  -2,0,  1,0,   -2,1,  1,-2 ],#0>>1
@@ -61,7 +61,18 @@ table0=[
 [0,0,  1,0,   -2,0,  1,2,   -2,-1],#3>>0
 [0,0,  -1,0,  3,0,   -3,-2, 3,3  ] #0>>3
 ]
-
+#180° wallkick
+table1=[
+[ 1, 0, 2, 0, 1, 1, 2, 1,-1, 0,-2, 0,-1, 1,-2, 1, 0,-1, 3, 0,-3, 0],#0>>2─┐
+[ 0, 1, 0, 2,-1, 1,-1, 2, 0,-1, 0,-2,-1,-1,-1,-2, 1, 0, 0, 3, 0,-3],#1>>3─┼┐
+[-1, 0,-2, 0,-1,-1,-2,-1, 1, 0, 2, 0, 1,-1, 2,-1, 0, 1,-3, 0, 3, 0],#2>>0─┘│
+[ 0, 1, 0, 2, 1, 1, 1, 2, 0,-1, 0,-2, 1,-1, 1,-2,-1, 0, 0, 3, 0,-3],#3>>1──┘
+#wall kick I
+[-1, 0,-2, 0, 1, 0, 2, 0, 0, 1],#0>>2─┐
+[ 0, 1, 0, 2, 0,-1, 0,-2,-1, 0],#1>>3─┼┐
+[ 1, 0, 2, 0,-1, 0,-2, 0, 0,-1],#2>>0─┘│
+[ 0, 1, 0, 2, 0,-1, 0,-2, 1, 0]# 3>>1──┘
+]
 
 
 board=[
@@ -134,11 +145,11 @@ def new_tetromino():
   queue.remove(queue[0])
   if len(queue) == 7:#if needed, generate a new bag (when queue is too short)
     new_bag()
-  x,y=172,32
-  if queue_minimal == 2: draw_string(let[queue[0]]+let[queue[1]]+let[queue[2]]+let[queue[3]]+let[queue[4]],x,y)
-  for q in range(queue_size):
-    if queue_minimal == 0: pass
-    elif queue_minimal == 1: pass
+  x,y=188,32
+  if queue_minimal == 1: draw_string(let[queue[0]]+let[queue[1]]+let[queue[2]]+let[queue[3]]+let[queue[4]],x,y)
+  else:
+    for q in range(queue_size):
+      draw_tetromino(queue[q],0,0,0,True)
 
 def move(x,y):
   check=True
@@ -211,43 +222,49 @@ while True:
     if td[1] == td[0]:
       td[1]=0
       draw_tetromino(piece[3],piece[0],piece[1],piece[2],False)#erase old tetromino
-      try:
-        if kd(30) or is_pressed('w'):#180°
-          if piece[2] < 2:
-            piece[2]+=2#change orientation
-          else:
-            piece[2]-=2
-        if kd(31) or is_pressed('x'):#CounterClockwise
-          check=(piece[2]*2)-1#define which table kick to check, 0>>1, 1>>2, 2>>3
-          if piece[2] != 0:
-            piece[2]-=1
-          else:
-            check=7#table kick 0>>3
-            piece[2]=3
-          invalid=True
-          c=-1
-          if piece[3] == 0:#if piece is I the jump 8 lines to get to the special table for I
-            check+=8
+      if kd(30) or is_pressed('w'):#180°
+        if piece[2] < 2:
+          piece[2]+=2#change orientation
+        else:
+          piece[2]-=2
+      if kd(31) or is_pressed('x'):#CounterClockwise
+        check=(piece[2]*2)-1#define which table kick to check, 0>>1, 1>>2, 2>>3
+        ret=piece[2]
+        if piece[2] != 0:
+          piece[2]-=1
+        else:
+          check=7#table kick 0>>3
+          piece[2]=3
+        invalid=True
+        c=-1
+        if piece[3] == 0:#if piece is I the jump 8 lines to get to the special table for I
+          check+=8
+        try:#try if roatation is possible
           while invalid:
             invalid=False
             c+=1
             for i in range(len(pieces[piece[3]][piece[2]])):#range de width of the orientation of the piece
               for j in range(len(pieces[piece[3]][piece[2]])):
                 if (board[piece[1]+i+table0[check][(c*2)+1]][piece[0]+j+table0[check][c*2]] != 9) and (pieces[piece[3]][piece[2]][i][j] == 1) and not invalid:#if board at piece position + boxe check is full and the corresponding one in the orientation pieces table is too (i=y,j=x) add table[check][attempt(c)] if necessary
-                  invalid=True
-            piece[1]+=table0[check][(c*2)+1]#update piece position according to kick table
-            piece[0]+=table0[check][c*2]
-        if kd(32) or is_pressed('c'):#Clockwise
-          check=piece[2]*2
-          if piece[2] != 3:
-            piece[2]+=1
-          else:
-            piece[2]=0
-            check=6#table kick 3>>0
-          invalid=True
-          c=-1
-          if piece[3] == 0:
-            check+=8
+                    invalid=True
+          piece[1]+=table0[check][(c*2)+1]#update piece position according to kick table
+          piece[0]+=table0[check][c*2]
+        except:#if not manage to find a solution t rotation reset orientation state
+          piece[2]=ret
+      if kd(32) or is_pressed('c'):#Clockwise
+        check=piece[2]*2
+        ret=piece[2]
+        ret=piece[2]
+        if piece[2] != 3:
+          piece[2]+=1
+        else:
+          piece[2]=0
+          check=6#table kick 3>>0
+        invalid=True
+        c=-1
+        if piece[3] == 0:
+          check+=8
+        try:
           while invalid:
             invalid=False
             c+=1
@@ -255,14 +272,18 @@ while True:
               for j in range(len(pieces[piece[3]][piece[2]])):
                 if (board[piece[1]+i+table0[check][(c*2)+1]][piece[0]+j+table0[check][c*2]] != 9) and (pieces[piece[3]][piece[2]][i][j] == 1) and not invalid:
                   invalid=True
+                  #draw_board()
+                  #draw_tetromino(piece[3],piece[0]+table0[check][c*2],piece[1]+table0[check][(c*2)+1],piece[2],True)
+                  #sleep(1.5)
           piece[1]+=table0[check][(c*2)+1]
           piece[0]+=table0[check][c*2]
-      except:pass
+        except:
+          piece[2]=ret
     else:
       td[1]+=1
   else:
     td[1]=td[0]
-  if get_keys != {}:
+  if get_keys != 0:
     draw_tetromino(piece[3],piece[0],piece[1],piece[2],True)#update tetromino
   frames+=1
 #33, 45, 50, 51, 52
