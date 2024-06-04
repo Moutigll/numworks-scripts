@@ -45,11 +45,11 @@ table0=[
 [0,0,  -1,0,  -1,-1, 0,2,   -1,2,],#0>>1
 [0,0,  1,0,   1,1,   0,-2,  1,-2 ],#1>>0
 [0,0,  1,0,   1,1,   0,-2,  1,-2 ],#1>>2
-[0,0,  -1,0,  -1,-1,  0,1,   -1,2 ],#2>>1
+[0,0,  -1,0,  -1,-1, 0,1,   -1,2 ],#2>>1
 [0,0,  1,0,   1,-1,  0,2,   1,2  ],#2>>3
-[0,0,  -1,0,  -1,1,   0,-2,  -1,-2 ],#3>>2
+[0,0,  -1,0,  -1,1,  0,-2,  -1,-2],#3>>2
 [0,0,  -1,0,  -1,1,  0,-2,  -1,-2],#3>>0
-[0,0,  1,0,   1,-1,  0,2,  1,2  ],#0>>3
+[0,0,  1,0,   1,-1,  0,2,   1,2  ],#0>>3
 #I Tetromino Wall Kick Data
 #Test0 Test1  Test2  Test3  Test4
 [0,0,  -2,0,  1,0,   -2,1,  1,-2 ],#0>>1
@@ -63,15 +63,11 @@ table0=[
 ]
 #180° wallkick
 table1=[
-[ 1, 0, 2, 0, 1, 1, 2, 1,-1, 0,-2, 0,-1, 1,-2, 1, 0,-1, 3, 0,-3, 0],#0>>2─┐
-[ 0, 1, 0, 2,-1, 1,-1, 2, 0,-1, 0,-2,-1,-1,-1,-2, 1, 0, 0, 3, 0,-3],#1>>3─┼┐
-[-1, 0,-2, 0,-1,-1,-2,-1, 1, 0, 2, 0, 1,-1, 2,-1, 0, 1,-3, 0, 3, 0],#2>>0─┘│
-[ 0, 1, 0, 2, 1, 1, 1, 2, 0,-1, 0,-2, 1,-1, 1,-2,-1, 0, 0, 3, 0,-3],#3>>1──┘
-#wall kick I
-[-1, 0,-2, 0, 1, 0, 2, 0, 0, 1],#0>>2─┐
-[ 0, 1, 0, 2, 0,-1, 0,-2,-1, 0],#1>>3─┼┐
-[ 1, 0, 2, 0,-1, 0,-2, 0, 0,-1],#2>>0─┘│
-[ 0, 1, 0, 2, 0,-1, 0,-2, 1, 0]# 3>>1──┘
+#Test0 Test1  Test2  Test3  Test4  Test5
+[0,0,  0,-1,  1,-1,  -1,-1, 1,0,   -1,0],#0>>2
+[0,0,  1,0,   1,-2,  1,-1,  0,-2,  0,-1],#1>>3
+[0,0,  0,1,   -1,1,  1,1,   -1,0,  1,0 ],#2>>0
+[0,0,  -1,0,  -1,-2, -1,-1, 0,-2,  0,-1],#3>>1
 ]
 
 
@@ -137,7 +133,7 @@ def new_bag():#to generate a new bag of 7 pieces
 
 def new_tetromino():
   global piece, drp, lm
-  piece=[6,4,0,queue[0]]#setup the piece variable wich store all the caracteristics of the current active piece; 0-coordinate x, 1-coordinate y, 2-orientation, 3-wich piece with the queue
+  piece=[6,4,1,queue[0]]#setup the piece variable wich store all the caracteristics of the current active piece; 0-coordinate x, 1-coordinate y, 2-orientation, 3-wich piece with the queue
   lm=piece#store the last state of the current piece
   draw_tetromino(piece[3],piece[0],piece[1],piece[2],True)#draw the active piece at start position
   drp[1]=0
@@ -148,8 +144,9 @@ def new_tetromino():
   x,y=188,32
   if queue_minimal == 1: draw_string(let[queue[0]]+let[queue[1]]+let[queue[2]]+let[queue[3]]+let[queue[4]],x,y)
   else:
+    fill_rect(175,20,50,200,(150,)*3)
     for q in range(queue_size):
-      draw_tetromino(queue[q],0,0,0,True)
+      draw_tetromino(queue[q],14,4+q*3,0,True)
 
 def move(x,y):
   check=True
@@ -218,15 +215,33 @@ while True:
     draw_tetromino(piece[3],piece[0],piece[1],piece[2],True)
     os=[piece[0],piece[1],piece[2],piece[3]]
     piece[1]=a
-  if kd(30) or kd(31) or kd(32) or is_pressed('w') or is_pressed('x') or is_pressed('c'):#eys 7, 8, 9
+  if kd(30) or kd(31) or kd(32) or is_pressed('w') or is_pressed('x') or is_pressed('c'):#keys 7, 8, 9
     if td[1] == td[0]:
       td[1]=0
       draw_tetromino(piece[3],piece[0],piece[1],piece[2],False)#erase old tetromino
       if kd(30) or is_pressed('w'):#180°
+        check=piece[2]
+        ret=piece[2]
         if piece[2] < 2:
           piece[2]+=2#change orientation
         else:
           piece[2]-=2
+
+        invalid=True
+        c=-1
+        try:#try if rotation is possible
+          while invalid:
+            invalid=False
+            c+=1
+            for i in range(len(pieces[piece[3]][piece[2]])):#range de width of the orientation of the piece
+              for j in range(len(pieces[piece[3]][piece[2]])):
+                if (board[piece[1]+i+table1[check][(c*2)+1]][piece[0]+j+table1[check][c*2]] != 9) and (pieces[piece[3]][piece[2]][i][j] == 1) and not invalid:#if board at piece position + boxe check is full and the corresponding one in the orientation pieces table is too (i=y,j=x) add table[check][attempt(c)] if necessary
+                    invalid=True
+          piece[1]+=table1[check][(c*2)+1]#update piece position according to kick table
+          piece[0]+=table1[check][c*2]
+        except:#if not manage to find a solution t rotation reset orientation state
+          piece[2]=ret
+
       if kd(31) or is_pressed('x'):#CounterClockwise
         check=(piece[2]*2)-1#define which table kick to check, 0>>1, 1>>2, 2>>3
         ret=piece[2]
@@ -239,7 +254,7 @@ while True:
         c=-1
         if piece[3] == 0:#if piece is I the jump 8 lines to get to the special table for I
           check+=8
-        try:#try if roatation is possible
+        try:#try if rotation is possible
           while invalid:
             invalid=False
             c+=1
