@@ -21,7 +21,12 @@ das=[1,0]#frames between each block down when press down
 queue_size=5#how many tetromino are shown in advance (may impact performances)
 queue_minimal=0#toggle this to reduce queue impact 0=nothing, 1=letters
 shadows=True#Traces to lines at the edges of the tetromino to see where it will drop (may severly impact performances)
-dl=0.1
+lvl=[0,2]#At wich level you start and how many lines are nedeed to pass next level
+gravity=[20,0.1,-1]#Number of frames before a pieces goes down a boxe and multiplicator applied on the gravity each time a level is passed (put the same number as for the gravity for the third number)
+#Put -1  ^^ here^^ if you want to diable gravity
+lock=[-1,-1]#Number of frames where a tetromino can touch a block below itself without be locked (you can do the same as with gravity to disable it)
+score=0
+b2b=0
 lm=[0,0,0,0]
 let=["i","t","j","l","s","z","o"]
 queue=[0,1,2,3,4,5,6]
@@ -108,8 +113,9 @@ board=[
 ] #save the current state of the gride in memory
   
 fill_rect(0,0,320,223,(150,)*3)
-fill_rect(77,0,95,223,(100,)*3)
-fill_rect(80,0,89,219,(150,)*3)#draw background and lines of the board
+fill_rect(77,0,95,225,(100,)*3)
+fill_rect(80,0,89,219,(150,)*3)
+draw_line(80,39,169,39,("orange"))#draw background and lines of the board
 
 def draw_board():#draw the current states of the board variable
   c=["cyan","purple","blue","orange","green","red","yellow",(255,)*3,0,(30,)*3]
@@ -179,7 +185,12 @@ def move(x,y,e):
     piece[1]=piece[1]+y
 for i in range(4):
   draw_tetromino(0,-2,2-i,0,False)
-draw_string("Lines:",5,80)
+draw_string("Lines:",5,60)
+draw_string(str(linec),5,78)
+draw_string("Lvl:"+str(lvl[0]),5,40)
+draw_string("Score:",179,2)
+draw_string(str(score),239,2)
+
 
 new_bag()
 new_bag()
@@ -188,10 +199,21 @@ new_tetromino()
 while True:
   if not kd(45) and not kd(1):
     hd=False
-  if (kd(45) or kd(1)) and not hd:
+  if lock[1] > 0:
+    a=piece[1]
+    move(0,1,False)
+    if a == piece[1]:
+      lock[1]-=1
+    else:
+      move(0,-1,False)
+  if ((kd(45) or kd(1)) and not hd) or lock[1] == 0:
+    lock[1]=lock[0]
     hd=True
     for k in range(24):
+      a=piece[1]
       move(0,1,False)
+      if a != piece[1]:
+        score+=2
     c=0
     for i in range(len(pieces[piece[3]][piece[2]])):#range de width of the orientation of the piece
       for j in range(len(pieces[piece[3]][piece[2]])):
@@ -214,19 +236,55 @@ while True:
         linec+=1
       new_tetromino()
       wumbocombo+=1
-      draw_string(str(linec),5,98)
+      score+=50*(wumbocombo-1)
+      draw_string(str(linec),5,78)
+      if int(linec/lvl[1]) > lvl[0]:
+        lvl[0]=int(linec/lvl[1])
+        gravity[0]=int(gravity[0]*gravity[1])
+        draw_string(str(lvl[0]),45,40)
       if len(l) == 1:
         draw_string("Single - "+str(wumbocombo),175,180)
+        score+=100
+        if c > 2:
+          score+=700
+          b2b+=1
+          if b2b != 0:
+            score+400
+        else:
+          b2b=0
       elif len(l) == 2:
         draw_string("Double - "+str(wumbocombo),175,180)
+        score+=300
+        if c > 2:
+          score+=900
+          b2b+=1
+          if b2b != 0:
+            score+600
+        else:
+          b2b=0
       elif len(l) == 3:
         draw_string("Triple - "+str(wumbocombo),175,180)
+        score+=500
+        if c > 2:
+          score+=1100
+          b2b+=1
+          if b2b != 0:
+            score+800
+        else:
+          b2b=0
       else:
         draw_string("TETRIS! - "+str(wumbocombo),175,180)
+        score+=800
+        b2b+=1
+        if b2b != 0:
+          score+400
       if board.count([7,7,7,9,9,9,9,9,9,9,9,9,9,7,7,7]) == 24:
         pc+=1
         draw_string("PERFECT CLEAR!",175,200)
-        draw_string("PC: "+str(pc),5,60)
+        draw_string("PC: "+str(pc),5,98)
+        score+=3500
+      if b2b > 1:
+        draw_string("B2B x " + str(b2b),175,198)
     else:
       wumbocombo=0
       new_tetromino()
@@ -234,11 +292,21 @@ while True:
       draw_string("T-SPIN",175,162)
       if len(l) == 0:
         draw_string("Mini",175,180)
+        score+=400
+        b2b+=1
+        if b2b > 1:
+          score+200
+          draw_string("B2B x " + str(b2b),175,198)
     draw_board()
-  if kd(2) or kd(51):
+    draw_string(str(score),239,2)
+  if kd(2) or kd(51):#Do soft drops
     if das[1] == das[0]:
+      a=piece[1]
       move(0,1,True)
       das[1]=0
+      if a != piece[1]:
+        score+=1
+        draw_string(str(score),239,2)
     else:
       das[1]+=1
   else: das[1]=das[0]
@@ -343,6 +411,7 @@ while True:
         except:
           piece[2]=ret
       if shadows:#Draw shadow of tetrominos if enabled
+        ps[56]=piece[0]
         draw_line((ps[(piece[3]*8)+(piece[2]*2)]+ps[56])*9+52,40,(ps[(piece[3]*8)+(piece[2]*2)]+ps[56])*9+52,219,("red"))
         draw_line((ps[(piece[3]*8)+(piece[2]*2)+1]+ps[56])*9+52,40,(ps[(piece[3]*8)+(piece[2]*2)+1]+ps[56])*9+52,219,("red"))
     else:
@@ -359,7 +428,14 @@ while True:
       new_tetromino()
     draw_tetromino(hold[3],-2,1,hold[2],True)
     h=False
-  if get_keys != 0:
+  if gravity[2] > 0 and gravity != -1:gravity[2]-=1#increase coooldown of gravity
+  if get_keys != 0 or gravity[2] == 0:
+    if gravity[2] == 0:
+      gravity[2]=gravity[0]
+      move(0,1,True)#if gravity tries to move the piece down
+      if gravity[2] == 0:
+        for i in range (23):
+          move(0,1,False)
     draw_tetromino(piece[3],piece[0],piece[1],piece[2],True)#update tetromino
   frames+=1
 #33, 45, 50, 51, 52
