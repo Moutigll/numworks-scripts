@@ -14,23 +14,21 @@ from random import *
 from ion import *
 from ion import keydown as kd
 from time import *
-seed(42)#if you want a custom seed
-arr=[9,0]#amount of frames between each repetitions left or right
-td=[40,0]#amount of frames after rotation or hardrop
+#seed(42)#if you want a custom seed
+arr=[5,0]#amount of frames between each repetitions left or right
+td=[39,0]#amount of frames after rotation or hardrop
 das=[1,0]#frames between each block down when press down
 queue_size=5#how many tetromino are shown in advance (may impact performances)
-queue_minimal=0#toggle this to reduce queue impact 0=nothing, 1=letters
+queue_minimal=0#toggle this to reduce queue impact 0=tetromino, 1=letters
 shadows=True#Traces to lines at the edges of the tetromino to see where it will drop (may severly impact performances)
-lvl=[0,2]#At wich level you start and how many lines are nedeed to pass next level
-gravity=[20,0.1,-1]#Number of frames before a pieces goes down a boxe and multiplicator applied on the gravity each time a level is passed (put the same number as for the gravity for the third number)
+lvl=[0,10]#At wich level you start and how many lines are nedeed to pass next level
+gravity=[300,0.1,300]#Number of frames before a pieces goes down a boxe and multiplicator applied on the gravity each time a level is passed (put the same number as for the gravity for the third number)
 #Put -1  ^^ here^^ if you want to diable gravity
-lock=[-1,-1]#Number of frames where a tetromino can touch a block below itself without be locked (you can do the same as with gravity to disable it)
-score=0
-b2b=0
+lock=[100,100]#Number of frames where a tetromino can touch a block below itself without be locked (you can do the same as with gravity to disable it)
 lm=[0,0,0,0]
 let=["i","t","j","l","s","z","o"]
 queue=[0,1,2,3,4,5,6]
-frames=pc=0
+frames=pc=score=b2b=0
 drp=[50,0]
 hd=False
 h=True
@@ -115,7 +113,7 @@ board=[
 fill_rect(0,0,320,223,(150,)*3)
 fill_rect(77,0,95,225,(100,)*3)
 fill_rect(80,0,89,219,(150,)*3)
-draw_line(80,39,169,39,("orange"))#draw background and lines of the board
+fill_rect(80,39,89,1,("orange"))#draw background and lines of the board
 
 def draw_board():#draw the current states of the board variable
   c=["cyan","purple","blue","orange","green","red","yellow",(255,)*3,0,(30,)*3]
@@ -146,10 +144,10 @@ def new_bag():#to generate a new bag of 7 pieces
 def new_tetromino():
   global piece, drp, lm, h
   if shadows:
-    draw_line((ps[(piece[3]*8)+(piece[2]*2)]+ps[56])*9+52,40,(ps[(piece[3]*8)+(piece[2]*2)]+ps[56])*9+52,219,(150,)*3)
-    draw_line((ps[(piece[3]*8)+(piece[2]*2)+1]+ps[56])*9+52,40,(ps[(piece[3]*8)+(piece[2]*2)+1]+ps[56])*9+52,219,(150,)*3)
-    draw_line((ps[queue[0]*8]+6)*9+52,40,(ps[queue[0]*8]+6)*9+52,219,("red"))
-    draw_line((ps[queue[0]*8+1]+6)*9+52,40,(ps[queue[0]*8+1]+6)*9+52,219,("red"))
+    fill_rect((ps[(piece[3]*8)+(piece[2]*2)]+ps[56])*9+52,40,1,179,(150,)*3)
+    fill_rect((ps[(piece[3]*8)+(piece[2]*2)+1]+ps[56])*9+52,40,1,179,(150,)*3)
+    fill_rect((ps[queue[0]*8]+6)*9+52,40,1,179,("red"))
+    fill_rect((ps[queue[0]*8+1]+6)*9+52,40,1,179,("red"))
     ps[56]=6
   piece=[6,4,0,queue[0]]#setup the piece variable wich store all the caracteristics of the current active piece; 0-coordinate x, 1-coordinate y, 2-orientation, 3-wich piece with the queue
   lm=piece#store the last state of the current piece
@@ -327,15 +325,15 @@ while True:
   if (kd(3) or kd(52) or  kd(0) or kd(50)) and shadows:#Draw shadow of tetrominos if enabled
     c=(150,)*3
     for i in range(2):
-      draw_line((ps[(piece[3]*8)+(piece[2]*2)]+ps[56])*9+52,40,(ps[(piece[3]*8)+(piece[2]*2)]+ps[56])*9+52,219,c)
-      draw_line((ps[(piece[3]*8)+(piece[2]*2)+1]+ps[56])*9+52,40,(ps[(piece[3]*8)+(piece[2]*2)+1]+ps[56])*9+52,219,c)
+      fill_rect((ps[(piece[3]*8)+(piece[2]*2)]+ps[56])*9+52,40,1,179,c)
+      fill_rect((ps[(piece[3]*8)+(piece[2]*2)+1]+ps[56])*9+52,40,1,179,c)
       ps[56]=piece[0];c=("red")#update position and color
   if kd(30) or kd(31) or kd(32) or is_pressed('w') or is_pressed('x') or is_pressed('c'):#keys 7, 8, 9
     if td[1] == td[0]:
       td[1]=0
       if shadows:#Draw shadow of tetrominos if enabled
-        draw_line((ps[(piece[3]*8)+(piece[2]*2)]+ps[56])*9+52,40,(ps[(piece[3]*8)+(piece[2]*2)]+ps[56])*9+52,219,(150,)*3)
-        draw_line((ps[(piece[3]*8)+(piece[2]*2)+1]+ps[56])*9+52,40,(ps[(piece[3]*8)+(piece[2]*2)+1]+ps[56])*9+52,219,(150,)*3)
+        fill_rect((ps[(piece[3]*8)+(piece[2]*2)]+ps[56])*9+52,40,1,179,(150,)*3)
+        fill_rect((ps[(piece[3]*8)+(piece[2]*2)+1]+ps[56])*9+52,40,1,179,(150,)*3)
       draw_tetromino(piece[3],piece[0],piece[1],piece[2],False)#erase old tetromino
       if kd(30) or is_pressed('w'):#180Â°
         check=piece[2]
@@ -412,8 +410,8 @@ while True:
           piece[2]=ret
       if shadows:#Draw shadow of tetrominos if enabled
         ps[56]=piece[0]
-        draw_line((ps[(piece[3]*8)+(piece[2]*2)]+ps[56])*9+52,40,(ps[(piece[3]*8)+(piece[2]*2)]+ps[56])*9+52,219,("red"))
-        draw_line((ps[(piece[3]*8)+(piece[2]*2)+1]+ps[56])*9+52,40,(ps[(piece[3]*8)+(piece[2]*2)+1]+ps[56])*9+52,219,("red"))
+        fill_rect((ps[(piece[3]*8)+(piece[2]*2)]+ps[56])*9+52,40,1,179,("red"))
+        fill_rect((ps[(piece[3]*8)+(piece[2]*2)+1]+ps[56])*9+52,40,1,179,("red"))
     else:
       td[1]+=1
   else:
@@ -438,4 +436,3 @@ while True:
           move(0,1,False)
     draw_tetromino(piece[3],piece[0],piece[1],piece[2],True)#update tetromino
   frames+=1
-#33, 45, 50, 51, 52
