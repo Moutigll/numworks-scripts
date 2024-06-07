@@ -2,7 +2,7 @@ def is_pressed(a):pass
 try:
   import os
   if hasattr(os, "environ"):
-    os.environ['KANDINSKY_ZOOM_RATIO'] = "4"
+    os.environ['KANDINSKY_ZOOM_RATIO'] = "3"
     os.environ['KANDINSKY_OS_MODE'] = '3'
     from keyboard import *
 except Exception as e:
@@ -20,11 +20,11 @@ td=[40,0]#amount of frames after rotation or hardrop
 das=[1,0]#frames between each block down when press down
 queue_size=5#how many tetromino are shown in advance (may impact performances)
 queue_minimal=0#toggle this to reduce queue impact 0=nothing, 1=letters
-shadows=True
+shadows=True#Traces to lines at the edges of the tetromino to see where it will drop (may severly impact performances)
 dl=0.1
 lm=[0,0,0,0]
 let=["i","t","j","l","s","z","o"]
-queue=[]
+queue=[0,1,2,3,4,5,6]
 frames=pc=0
 drp=[50,0]
 hd=False
@@ -33,14 +33,15 @@ lmr=False#Is last move a rotation, used to determine t-spins
 wumbocombo=linec=0
 olds=piece=[0,4,0,0]
 pieces=[
-[[[0,0,0,0],[1,1,1,1],[0,0,0,0],[0,0,0,0]],[[0,0,1,0],[0,0,1,0],[0,0,1,0],[0,0,1,0]],[[0,0,0,0],[0,0,0,0],[1,1,1,1],[0,0,0,0]],[[0,1,0,0],[0,1,0,0],[0,1,0,0],[0,1,0,0]]],
-[[[0,1,0],[1,1,1],[0,0,0]],[[0,1,0],[0,1,1],[0,1,0]],[[0,0,0],[1,1,1],[0,1,0]],[[0,1,0],[1,1,0],[0,1,0]]],
-[[[1,0,0],[1,1,1],[0,0,0]],[[0,1,1],[0,1,0],[0,1,0]],[[0,0,0],[1,1,1],[0,0,1]],[[0,1,0],[0,1,0],[1,1,0]]],
-[[[0,0,1],[1,1,1],[0,0,0]],[[0,1,0],[0,1,0],[0,1,1]],[[0,0,0],[1,1,1],[1,0,0]],[[1,1,0],[0,1,0],[0,1,0]]],
-[[[0,1,1],[1,1,0],[0,0,0]],[[0,1,0],[0,1,1],[0,0,1]],[[0,0,0],[0,1,1],[1,1,0]],[[1,0,0],[1,1,0],[0,1,0]]],
-[[[1,1,0],[0,1,1],[0,0,0]],[[0,0,1],[0,1,1],[0,1,0]],[[0,0,0],[1,1,0],[0,1,1]],[[0,1,0],[1,1,0],[1,0,0]]],
-[[[0,1,1,0],[0,1,1,0],[0,0,0,0],[0,0,0,0]],[[0,1,1,0],[0,1,1,0],[0,0,0,0],[0,0,0,0]],[[0,1,1,0],[0,1,1,0],[0,0,0,0],[0,0,0,0]],[[0,1,1,0],[0,1,1,0],[0,0,0,0],[0,0,0,0]]]
+[[[0,0,0,0],[1,1,1,1],[0,0,0,0],[0,0,0,0]],[[0,0,1,0],[0,0,1,0],[0,0,1,0],[0,0,1,0]],[[0,0,0,0],[0,0,0,0],[1,1,1,1],[0,0,0,0]],[[0,1,0,0],[0,1,0,0],[0,1,0,0],[0,1,0,0]]],#I piece
+[[[0,1,0],[1,1,1],[0,0,0]],[[0,1,0],[0,1,1],[0,1,0]],[[0,0,0],[1,1,1],[0,1,0]],[[0,1,0],[1,1,0],[0,1,0]]],#T piece
+[[[1,0,0],[1,1,1],[0,0,0]],[[0,1,1],[0,1,0],[0,1,0]],[[0,0,0],[1,1,1],[0,0,1]],[[0,1,0],[0,1,0],[1,1,0]]],#J piece
+[[[0,0,1],[1,1,1],[0,0,0]],[[0,1,0],[0,1,0],[0,1,1]],[[0,0,0],[1,1,1],[1,0,0]],[[1,1,0],[0,1,0],[0,1,0]]],#L piece
+[[[0,1,1],[1,1,0],[0,0,0]],[[0,1,0],[0,1,1],[0,0,1]],[[0,0,0],[0,1,1],[1,1,0]],[[1,0,0],[1,1,0],[0,1,0]]],#S piece
+[[[1,1,0],[0,1,1],[0,0,0]],[[0,0,1],[0,1,1],[0,1,0]],[[0,0,0],[1,1,0],[0,1,1]],[[0,1,0],[1,1,0],[1,0,0]]],#Z piece
+[[[0,1,1,0],[0,1,1,0],[0,0,0,0],[0,0,0,0]],[[0,1,1,0],[0,1,1,0],[0,0,0,0],[0,0,0,0]],[[0,1,1,0],[0,1,1,0],[0,0,0,0],[0,0,0,0]],[[0,1,1,0],[0,1,1,0],[0,0,0,0],[0,0,0,0]]]#O piece
 ] #gestion of collision boxes for tetromino in a 4/3x4/3 box
+ps=[0,4,2,3,0,4,1,2,0,3,1,3,0,3,0,2,0,3,1,3,0,3,0,2,0,3,1,3,0,3,0,2,0,3,1,3,0,3,0,2,0,3,1,3,0,3,0,2,1,3,1,3,1,3,1,3,6]#vertical collisions for shadows
 
 #List of wallkick
 
@@ -112,7 +113,7 @@ fill_rect(80,0,89,219,(150,)*3)#draw background and lines of the board
 
 def draw_board():#draw the current states of the board variable
   c=["cyan","purple","blue","orange","green","red","yellow",(255,)*3,0,(30,)*3]
-  for n in range(4,24):
+  for n in range(0,24):
     for i in range(3,13):
       fill_rect((i*9)+53,(n*9)+4,8,8,c[board[n][i]])
 
@@ -138,6 +139,12 @@ def new_bag():#to generate a new bag of 7 pieces
 
 def new_tetromino():
   global piece, drp, lm, h
+  if shadows:
+    draw_line((ps[(piece[3]*8)+(piece[2]*2)]+ps[56])*9+52,40,(ps[(piece[3]*8)+(piece[2]*2)]+ps[56])*9+52,219,(150,)*3)
+    draw_line((ps[(piece[3]*8)+(piece[2]*2)+1]+ps[56])*9+52,40,(ps[(piece[3]*8)+(piece[2]*2)+1]+ps[56])*9+52,219,(150,)*3)
+    draw_line((ps[queue[0]*8]+6)*9+52,40,(ps[queue[0]*8]+6)*9+52,219,("red"))
+    draw_line((ps[queue[0]*8+1]+6)*9+52,40,(ps[queue[0]*8+1]+6)*9+52,219,("red"))
+    ps[56]=6
   piece=[6,4,0,queue[0]]#setup the piece variable wich store all the caracteristics of the current active piece; 0-coordinate x, 1-coordinate y, 2-orientation, 3-wich piece with the queue
   lm=piece#store the last state of the current piece
   draw_tetromino(piece[3],piece[0],piece[1],piece[2],True)#draw the active piece at start position
@@ -146,13 +153,13 @@ def new_tetromino():
   if len(queue) == 7:#if needed, generate a new bag (when queue is too short)
     new_bag()
   x,y=188,32
-  if queue_minimal == 1: draw_string(let[queue[0]]+let[queue[1]]+let[queue[2]]+let[queue[3]]+let[queue[4]],x,y)
+  if queue_minimal == 1: draw_string(let[queue[0]]+let[queue[1]]+let[queue[2]]+let[queue[3]]+let[queue[4]],x,y)#draw the queue with letters if minimal option is activated
   else:
     fill_rect(175,20,50,130,(150,)*3)
     for q in range(queue_size):
       draw_tetromino(queue[q],14,2+q*3,0,True)
   h=True
-  fill_rect(175,150,100,80,(150,)*3)
+  fill_rect(175,150,150,80,(150,)*3)
 
 def move(x,y,e):
   global lmr
@@ -204,9 +211,9 @@ while True:
       for i in range(len(l)):
         board.remove(board[l[i]])
         board.insert(0,[7,7,7,9,9,9,9,9,9,9,9,9,9,7,7,7])
+        linec+=1
       new_tetromino()
       wumbocombo+=1
-      linec+=1
       draw_string(str(linec),5,98)
       if len(l) == 1:
         draw_string("Single - "+str(wumbocombo),175,180)
@@ -225,6 +232,8 @@ while True:
       new_tetromino()
     if c > 2:
       draw_string("T-SPIN",175,162)
+      if len(l) == 0:
+        draw_string("Mini",175,180)
     draw_board()
   if kd(2) or kd(51):
     if das[1] == das[0]:
@@ -247,11 +256,18 @@ while True:
     else:
       arr[1]+=1
   else: arr[1]=arr[0]
-  if (kd(3) or kd(52) or  kd(0) or kd(50)) and shadows:
-    pieces[piece[3]]
+  if (kd(3) or kd(52) or  kd(0) or kd(50)) and shadows:#Draw shadow of tetrominos if enabled
+    c=(150,)*3
+    for i in range(2):
+      draw_line((ps[(piece[3]*8)+(piece[2]*2)]+ps[56])*9+52,40,(ps[(piece[3]*8)+(piece[2]*2)]+ps[56])*9+52,219,c)
+      draw_line((ps[(piece[3]*8)+(piece[2]*2)+1]+ps[56])*9+52,40,(ps[(piece[3]*8)+(piece[2]*2)+1]+ps[56])*9+52,219,c)
+      ps[56]=piece[0];c=("red")#update position and color
   if kd(30) or kd(31) or kd(32) or is_pressed('w') or is_pressed('x') or is_pressed('c'):#keys 7, 8, 9
     if td[1] == td[0]:
       td[1]=0
+      if shadows:#Draw shadow of tetrominos if enabled
+        draw_line((ps[(piece[3]*8)+(piece[2]*2)]+ps[56])*9+52,40,(ps[(piece[3]*8)+(piece[2]*2)]+ps[56])*9+52,219,(150,)*3)
+        draw_line((ps[(piece[3]*8)+(piece[2]*2)+1]+ps[56])*9+52,40,(ps[(piece[3]*8)+(piece[2]*2)+1]+ps[56])*9+52,219,(150,)*3)
       draw_tetromino(piece[3],piece[0],piece[1],piece[2],False)#erase old tetromino
       if kd(30) or is_pressed('w'):#180Â°
         check=piece[2]
@@ -326,6 +342,9 @@ while True:
           lmr=True
         except:
           piece[2]=ret
+      if shadows:#Draw shadow of tetrominos if enabled
+        draw_line((ps[(piece[3]*8)+(piece[2]*2)]+ps[56])*9+52,40,(ps[(piece[3]*8)+(piece[2]*2)]+ps[56])*9+52,219,("red"))
+        draw_line((ps[(piece[3]*8)+(piece[2]*2)+1]+ps[56])*9+52,40,(ps[(piece[3]*8)+(piece[2]*2)+1]+ps[56])*9+52,219,("red"))
     else:
       td[1]+=1
   else:
